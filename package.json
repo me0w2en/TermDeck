@@ -1,0 +1,63 @@
+{
+  "name": "termdeck",
+  "version": "2.0.0",
+  "description": "A dashboard for managing terminal AI agents — switch between agents instantly and track their work in real time.",
+  "main": "electron/main.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/me0w2en/TermDeck.git"
+  },
+  "author": "me0w2en",
+  "license": "MIT",
+  "homepage": "https://github.com/me0w2en/TermDeck#readme",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "vite build && electron-builder",
+    "lint": "eslint src --ext .ts,.tsx",
+    "rebuild": "electron-rebuild -f -w node-pty",
+    "postinstall": "electron-rebuild -f -w node-pty"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-unicode11": "^0.9.0",
+    "@xterm/xterm": "^5.5.0",
+    "framer-motion": "^11.15.0",
+    "node-pty": "^1.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
+    "electron": "^33.3.1",
+    "electron-builder": "^25.1.8",
+    "electron-rebuild": "^3.2.9",
+    "eslint": "^9.20.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
+    "wait-on": "^8.0.3"
+  },
+  "build": {
+    "appId": "com.termdeck.app",
+    "productName": "TermDeck",
+    "icon": "build/icon.icns",
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
