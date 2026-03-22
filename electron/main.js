@@ -12,6 +12,15 @@ try {
 
 const isDev = !app.isPackaged;
 
+// Set app name (shows in menu bar and dock)
+app.setName('TermDeck');
+if (process.platform === 'darwin') {
+  app.setAboutPanelOptions({
+    applicationName: 'TermDeck',
+    applicationVersion: '2.0.0',
+  });
+}
+
 const terminals = new Map();
 const sessionStreams = new Map();
 

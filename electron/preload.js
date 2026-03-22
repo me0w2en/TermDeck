@@ -33,4 +33,5 @@ contextBridge.exposeInMainWorld('terminal', {
     ipcRenderer.on('terminal:claude-state', handler);
     return () => ipcRenderer.removeListener('terminal:claude-state', handler);
   },
+
 });
