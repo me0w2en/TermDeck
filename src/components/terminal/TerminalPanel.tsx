@@ -188,7 +188,7 @@ export default function TerminalPanel({ terminalId, cwd }: TerminalPanelProps) {
   return (
     <div
       ref={containerRef}
-      className="h-full w-full overflow-hidden rounded-lg bg-[#111318]"
+      className="h-full w-full overflow-hidden rounded-lg bg-[#111318] terminal-keep-dark"
     />
   );
 }

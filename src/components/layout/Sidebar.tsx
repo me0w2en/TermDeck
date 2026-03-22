@@ -1,17 +1,27 @@
 import type { SidebarProps } from '../../types';
 import AgentListItem from '../agents/AgentListItem';
 
-export default function Sidebar({ agents }: SidebarProps) {
+export default function Sidebar({ agents, collapsed }: SidebarProps) {
   return (
-    <aside className="fixed left-0 top-0 z-30 flex h-full w-[280px] flex-col bg-white/5 backdrop-blur-xl border-r border-white/10">
+    <aside
+      className={`fixed left-0 top-0 z-30 flex h-full flex-col bg-white/5 backdrop-blur-xl border-r border-white/10 transition-all duration-300 overflow-hidden ${
+        collapsed ? 'w-0 border-r-0' : 'w-[280px]'
+      }`}
+    >
       {/* Draggable spacer for macOS traffic lights */}
       <div
         className="h-10 flex-shrink-0"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       />
 
+      {/* Header */}
+      <div className="px-3 pt-1 pb-1.5 min-w-[280px] flex items-center justify-between">
+        <span className="text-[11px] font-medium text-white/40 uppercase tracking-wider">Agents</span>
+        <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/40">{agents.agents.length}</span>
+      </div>
+
       {/* Search */}
-      <div className="px-3 pb-2">
+      <div className="px-3 pb-2 min-w-[280px]">
         <div className="relative">
           <svg
             className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30"
@@ -37,14 +47,14 @@ export default function Sidebar({ agents }: SidebarProps) {
       </div>
 
       {/* Agent list */}
-      <div className="flex-1 overflow-y-auto px-2 py-1">
+      <div className="flex-1 overflow-y-auto px-2 py-1 min-w-[280px]">
         {agents.filteredAgents.length === 0 ? (
           <div className="px-3 py-6 text-center text-sm text-white/30">
             {agents.agents.length === 0 ? 'No agents yet' : 'No agents found'}
           </div>
         ) : (
           <div className="flex flex-col gap-0.5">
-            {agents.filteredAgents.map((agent) => (
+            {agents.filteredAgents.map((agent, i) => (
               <AgentListItem
                 key={agent.id}
                 agent={agent}
@@ -54,6 +64,13 @@ export default function Sidebar({ agents }: SidebarProps) {
                   window.terminal?.clearAgentHistory(agent.id);
                   agents.removeAgent(agent.id);
                 }}
+                onMoveUp={i > 0 ? () => agents.moveAgent(agent.id, 'up') : undefined}
+                onMoveDown={i < agents.filteredAgents.length - 1 ? () => agents.moveAgent(agent.id, 'down') : undefined}
+                onRename={() => {
+                  agents.selectAgent(agent.id);
+                  // Name editing is handled in AgentDetailPanel via double-click
+                }}
+                onSetStatus={(status) => agents.updateAgent(agent.id, { status })}
               />
             ))}
           </div>

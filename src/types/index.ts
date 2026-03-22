@@ -16,7 +16,7 @@ export interface AgentTerminal {
 export interface Agent {
   id: string;
   name: string;
-  role: string;
+  role?: string;
   status: AgentStatus;
   color: string;
   path?: string;
@@ -44,6 +44,10 @@ export interface UseAgentsReturn {
   addChecklistItem: (agentId: string, title: string) => void;
   toggleChecklistItem: (agentId: string, itemId: string) => void;
   removeChecklistItem: (agentId: string, itemId: string) => void;
+  editChecklistItem: (agentId: string, itemId: string, title: string) => void;
+  moveChecklistItem: (agentId: string, itemId: string, direction: 'up' | 'down') => void;
+  clearCompletedItems: (agentId: string) => void;
+  moveAgent: (id: string, direction: 'up' | 'down') => void;
   filterText: string;
   setFilterText: (text: string) => void;
   filteredAgents: Agent[];
@@ -52,6 +56,7 @@ export interface UseAgentsReturn {
 
 export interface SidebarProps {
   agents: UseAgentsReturn;
+  collapsed: boolean;
 }
 
 export interface AgentListItemProps {
@@ -59,6 +64,10 @@ export interface AgentListItemProps {
   isSelected: boolean;
   onSelect: () => void;
   onRemove: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  onRename?: () => void;
+  onSetStatus?: (status: AgentStatus) => void;
 }
 
 export interface TopBarProps {
@@ -66,6 +75,8 @@ export interface TopBarProps {
   onViewChange: (mode: ViewMode) => void;
   onAddAgent: () => void;
   runningCount: number;
+  sidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
 }
 
 export interface StatusBarProps {
@@ -73,12 +84,17 @@ export interface StatusBarProps {
   totalTasks: number;
   completedTasks: number;
   totalCost: number;
+  totalAllTimeCost?: number;
+  themeMode?: import('../hooks/useTheme').ThemeMode;
+  onCycleTheme?: () => void;
 }
 
 export interface DashboardViewProps {
   agents: Agent[];
   onSelectAgent: (id: string) => void;
+  onAddAgent?: () => void;
   getClaudeSummary: (agentId: string) => ClaudeAgentSummary;
+  getLastActivity?: (agentId: string) => string | null;
 }
 
 export interface AgentDetailPanelProps {
@@ -87,9 +103,16 @@ export interface AgentDetailPanelProps {
   onAddChecklistItem: (title: string) => void;
   onToggleChecklistItem: (itemId: string) => void;
   onRemoveChecklistItem: (itemId: string) => void;
+  onEditChecklistItem: (itemId: string, title: string) => void;
+  onMoveChecklistItem: (itemId: string, direction: 'up' | 'down') => void;
+  onClearCompletedItems: () => void;
   onRemoveAgent: () => void;
   onUpdateTerminals: (terminals: AgentTerminal[]) => void;
+  onUpdateName: (name: string) => void;
+  onUpdateAgent: (updates: Partial<Agent>) => void;
   claudeSummary: ClaudeAgentSummary;
+  activityEvents?: import('../hooks/useActivityLog').ActivityEvent[];
+  onClearActivity?: () => void;
 }
 
 export interface ChecklistProps {
@@ -97,6 +120,9 @@ export interface ChecklistProps {
   onAdd: (title: string) => void;
   onToggle: (id: string) => void;
   onRemove: (id: string) => void;
+  onEdit: (id: string, title: string) => void;
+  onMove: (id: string, direction: 'up' | 'down') => void;
+  onClearCompleted: () => void;
   accentColor: string;
 }
 
@@ -108,6 +134,8 @@ export interface TerminalPanelProps {
 export interface TerminalContainerProps {
   agent: Agent;
   onUpdateTerminals: (terminals: AgentTerminal[]) => void;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 export interface InitialAvatarProps {

@@ -12,6 +12,8 @@ function loadAgents(): Agent[] {
     return agents.map(({ avatarStyle, ...rest }: Agent & { avatarStyle?: unknown }) => ({
       ...rest,
       terminals: rest.terminals ?? [{ index: 0, name: 'Terminal 1' }],
+      // Reset running status on load — actual status is determined by Claude monitor
+      status: rest.status === 'running' ? 'idle' : rest.status,
     }));
   } catch {
     return [];
@@ -53,7 +55,7 @@ export function useAgents(): UseAgentsReturn {
     if (!filterText) return agents;
     const q = filterText.toLowerCase();
     return agents.filter(
-      (a) => a.name.toLowerCase().includes(q) || a.role.toLowerCase().includes(q),
+      (a) => a.name.toLowerCase().includes(q) || (a.role && a.role.toLowerCase().includes(q)),
     );
   }, [agents, filterText]);
 
@@ -103,7 +105,8 @@ export function useAgents(): UseAgentsReturn {
   // ─── Checklist ─────────────────────────────────────────────────────────────
 
   const addChecklistItem = useCallback((agentId: string, title: string) => {
-    const item: ChecklistItem = { id: crypto.randomUUID(), title, completed: false };
+    if (!title.trim()) return;
+    const item: ChecklistItem = { id: crypto.randomUUID(), title: title.trim(), completed: false };
     setAgents((prev) =>
       prev.map((a) =>
         a.id === agentId ? { ...a, checklist: [...a.checklist, item] } : a,
@@ -134,6 +137,42 @@ export function useAgents(): UseAgentsReturn {
     );
   }, []);
 
+  const editChecklistItem = useCallback((agentId: string, itemId: string, title: string) => {
+    setAgents((prev) =>
+      prev.map((a) => {
+        if (a.id !== agentId) return a;
+        return {
+          ...a,
+          checklist: a.checklist.map((i) => (i.id === itemId ? { ...i, title } : i)),
+        };
+      }),
+    );
+  }, []);
+
+  const moveChecklistItem = useCallback((agentId: string, itemId: string, direction: 'up' | 'down') => {
+    setAgents((prev) =>
+      prev.map((a) => {
+        if (a.id !== agentId) return a;
+        const idx = a.checklist.findIndex((i) => i.id === itemId);
+        if (idx === -1) return a;
+        const target = direction === 'up' ? idx - 1 : idx + 1;
+        if (target < 0 || target >= a.checklist.length) return a;
+        const next = [...a.checklist];
+        [next[idx], next[target]] = [next[target], next[idx]];
+        return { ...a, checklist: next };
+      }),
+    );
+  }, []);
+
+  const clearCompletedItems = useCallback((agentId: string) => {
+    setAgents((prev) =>
+      prev.map((a) => {
+        if (a.id !== agentId) return a;
+        return { ...a, checklist: a.checklist.filter((i) => !i.completed) };
+      }),
+    );
+  }, []);
+
   return {
     agents,
     selectedId,
@@ -145,6 +184,20 @@ export function useAgents(): UseAgentsReturn {
     addChecklistItem,
     toggleChecklistItem,
     removeChecklistItem,
+    editChecklistItem,
+    moveChecklistItem,
+    clearCompletedItems,
+    moveAgent: useCallback((id: string, direction: 'up' | 'down') => {
+      setAgents((prev) => {
+        const idx = prev.findIndex((a) => a.id === id);
+        if (idx === -1) return prev;
+        const target = direction === 'up' ? idx - 1 : idx + 1;
+        if (target < 0 || target >= prev.length) return prev;
+        const next = [...prev];
+        [next[idx], next[target]] = [next[target], next[idx]];
+        return next;
+      });
+    }, []),
     filterText,
     setFilterText: useCallback((t: string) => setFilterText(t), []),
     filteredAgents,

@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -18,6 +19,8 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === 'Escape') onCancel();
@@ -42,7 +45,6 @@ export default function ConfirmDialog({
           transition={{ duration: 0.15 }}
           className="fixed inset-0 z-[60] flex items-center justify-center p-4"
         >
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -52,8 +54,8 @@ export default function ConfirmDialog({
             aria-hidden="true"
           />
 
-          {/* Dialog */}
           <motion.div
+            ref={trapRef}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -70,6 +72,7 @@ export default function ConfirmDialog({
               <button
                 type="button"
                 onClick={onCancel}
+                autoFocus
                 className="rounded-lg px-4 py-2 text-sm text-white/50 transition-colors hover:bg-white/5 hover:text-white/70 outline-none focus-visible:ring-2 focus-visible:ring-white/30"
               >
                 Cancel

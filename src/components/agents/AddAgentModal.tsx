@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { AddAgentModalProps } from '../../types';
 import InitialAvatar from './InitialAvatar';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 const presetColors = [
   '#6b7280',
@@ -17,8 +18,8 @@ export default function AddAgentModal({
   onClose,
   onAdd,
 }: AddAgentModalProps) {
+  const trapRef = useFocusTrap<HTMLDivElement>(isOpen);
   const [name, setName] = useState('');
-  const [role, setRole] = useState('');
   const [agentPath, setAgentPath] = useState('');
   const [color, setColor] = useState(presetColors[0]);
   const [showPicker, setShowPicker] = useState(false);
@@ -28,7 +29,6 @@ export default function AddAgentModal({
   useEffect(() => {
     if (isOpen) {
       setName('');
-      setRole('');
       setAgentPath('');
       setColor(presetColors[0]);
       setShowPicker(false);
@@ -52,11 +52,10 @@ export default function AddAgentModal({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !role.trim()) return;
+    if (!name.trim()) return;
 
     onAdd({
       name: name.trim(),
-      role: role.trim(),
       status: 'idle',
       color,
       ...(agentPath.trim() && { path: agentPath.trim() }),
@@ -90,6 +89,7 @@ export default function AddAgentModal({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            ref={trapRef}
             role="dialog"
             aria-modal="true"
             aria-label="Add new agent"
@@ -126,24 +126,6 @@ export default function AddAgentModal({
                   placeholder="Agent name"
                   className="w-full rounded-lg bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none ring-1 ring-white/10 focus-visible:ring-2 focus-visible:ring-white/30"
                   autoFocus
-                />
-              </div>
-
-              {/* Role */}
-              <div>
-                <label
-                  htmlFor="agent-role"
-                  className="mb-1 block text-xs font-medium uppercase tracking-wider text-white/40"
-                >
-                  Role
-                </label>
-                <input
-                  id="agent-role"
-                  type="text"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  placeholder="e.g. Developer, Designer, QA..."
-                  className="w-full rounded-lg bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none ring-1 ring-white/10 focus-visible:ring-2 focus-visible:ring-white/30"
                 />
               </div>
 
@@ -252,7 +234,7 @@ export default function AddAgentModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={!name.trim() || !role.trim()}
+                  disabled={!name.trim()}
                   className="rounded-lg bg-white/10 px-4 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40 outline-none focus-visible:ring-2 focus-visible:ring-white/30"
                 >
                   Create Agent
