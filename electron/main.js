@@ -378,7 +378,8 @@ function registerTerminalIPC() {
 
     const resolvedCwd = resolveCwd(id, cwd);
 
-    const ptyProcess = pty.spawn(shell, [], {
+    const shellArgs = process.platform === 'win32' ? [] : ['-l'];
+    const ptyProcess = pty.spawn(shell, shellArgs, {
       name: 'xterm-256color',
       cols: cols || 80,
       rows: rows || 24,
