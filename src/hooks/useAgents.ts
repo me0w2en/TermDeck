@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import type { Agent, AgentStatus, ChecklistItem, UseAgentsReturn } from '../types';
+import type { Agent, AgentStatus, UseAgentsReturn } from '../types';
 
 const STORAGE_KEY = 'termdeck:agents';
 const SELECTION_KEY = 'termdeck:selected';
@@ -9,10 +9,9 @@ function loadAgents(): Agent[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const agents = JSON.parse(raw) as Agent[];
-    return agents.map(({ avatarStyle, ...rest }: Agent & { avatarStyle?: unknown }) => ({
+    return agents.map(({ checklist, avatarStyle, ...rest }: Agent & { checklist?: unknown; avatarStyle?: unknown }) => ({
       ...rest,
       terminals: rest.terminals ?? [{ index: 0, name: 'Terminal 1' }],
-      // Reset running status on load — actual status is determined by Claude monitor
       status: rest.status === 'running' ? 'idle' : rest.status,
     }));
   } catch {
@@ -33,18 +32,14 @@ export function useAgents(): UseAgentsReturn {
   );
   const [filterText, setFilterText] = useState('');
 
-  // Persist agents
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(agents));
   }, [agents]);
 
-  // Persist selection
   useEffect(() => {
     if (selectedId) localStorage.setItem(SELECTION_KEY, selectedId);
     else localStorage.removeItem(SELECTION_KEY);
   }, [selectedId]);
-
-  // ─── Computed ──────────────────────────────────────────────────────────────
 
   const selectedAgent = useMemo(
     () => agents.find((a) => a.id === selectedId) ?? null,
@@ -65,16 +60,13 @@ export function useAgents(): UseAgentsReturn {
     return counts;
   }, [agents]);
 
-  // ─── Agent CRUD ────────────────────────────────────────────────────────────
-
   const selectAgent = useCallback((id: string) => setSelectedId(id), []);
 
   const addAgent = useCallback(
-    (data: Omit<Agent, 'id' | 'createdAt' | 'checklist' | 'terminals'>) => {
+    (data: Omit<Agent, 'id' | 'createdAt' | 'terminals'>) => {
       const agent: Agent = {
         ...data,
         id: crypto.randomUUID(),
-        checklist: [],
         terminals: [{ index: 0, name: 'Terminal 1' }],
         createdAt: new Date().toISOString(),
       };
@@ -102,77 +94,6 @@ export function useAgents(): UseAgentsReturn {
     [],
   );
 
-  // ─── Checklist ─────────────────────────────────────────────────────────────
-
-  const addChecklistItem = useCallback((agentId: string, title: string) => {
-    if (!title.trim()) return;
-    const item: ChecklistItem = { id: crypto.randomUUID(), title: title.trim(), completed: false };
-    setAgents((prev) =>
-      prev.map((a) =>
-        a.id === agentId ? { ...a, checklist: [...a.checklist, item] } : a,
-      ),
-    );
-  }, []);
-
-  const toggleChecklistItem = useCallback((agentId: string, itemId: string) => {
-    setAgents((prev) =>
-      prev.map((a) => {
-        if (a.id !== agentId) return a;
-        return {
-          ...a,
-          checklist: a.checklist.map((i) =>
-            i.id === itemId ? { ...i, completed: !i.completed } : i,
-          ),
-        };
-      }),
-    );
-  }, []);
-
-  const removeChecklistItem = useCallback((agentId: string, itemId: string) => {
-    setAgents((prev) =>
-      prev.map((a) => {
-        if (a.id !== agentId) return a;
-        return { ...a, checklist: a.checklist.filter((i) => i.id !== itemId) };
-      }),
-    );
-  }, []);
-
-  const editChecklistItem = useCallback((agentId: string, itemId: string, title: string) => {
-    setAgents((prev) =>
-      prev.map((a) => {
-        if (a.id !== agentId) return a;
-        return {
-          ...a,
-          checklist: a.checklist.map((i) => (i.id === itemId ? { ...i, title } : i)),
-        };
-      }),
-    );
-  }, []);
-
-  const moveChecklistItem = useCallback((agentId: string, itemId: string, direction: 'up' | 'down') => {
-    setAgents((prev) =>
-      prev.map((a) => {
-        if (a.id !== agentId) return a;
-        const idx = a.checklist.findIndex((i) => i.id === itemId);
-        if (idx === -1) return a;
-        const target = direction === 'up' ? idx - 1 : idx + 1;
-        if (target < 0 || target >= a.checklist.length) return a;
-        const next = [...a.checklist];
-        [next[idx], next[target]] = [next[target], next[idx]];
-        return { ...a, checklist: next };
-      }),
-    );
-  }, []);
-
-  const clearCompletedItems = useCallback((agentId: string) => {
-    setAgents((prev) =>
-      prev.map((a) => {
-        if (a.id !== agentId) return a;
-        return { ...a, checklist: a.checklist.filter((i) => !i.completed) };
-      }),
-    );
-  }, []);
-
   return {
     agents,
     selectedId,
@@ -181,12 +102,6 @@ export function useAgents(): UseAgentsReturn {
     addAgent,
     removeAgent,
     updateAgent,
-    addChecklistItem,
-    toggleChecklistItem,
-    removeChecklistItem,
-    editChecklistItem,
-    moveChecklistItem,
-    clearCompletedItems,
     moveAgent: useCallback((id: string, direction: 'up' | 'down') => {
       setAgents((prev) => {
         const idx = prev.findIndex((a) => a.id === id);

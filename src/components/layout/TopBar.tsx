@@ -24,6 +24,20 @@ const viewOptions: { mode: ViewMode; label: string; icon: JSX.Element }[] = [
       </svg>
     ),
   },
+  {
+    mode: 'monitor',
+    label: 'Monitor',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        <rect x="1" y="2" width="6" height="5" rx="1" />
+        <rect x="9" y="2" width="6" height="5" rx="1" />
+        <rect x="1" y="9" width="6" height="5" rx="1" />
+        <rect x="9" y="9" width="6" height="5" rx="1" />
+        <path d="M3 4.5L4.5 6L3 7.5" opacity="0.5" />
+        <path d="M11 4.5L12.5 6L11 7.5" opacity="0.5" />
+      </svg>
+    ),
+  },
 ];
 
 export default function TopBar({

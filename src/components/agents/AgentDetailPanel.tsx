@@ -1,12 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import type { AgentDetailPanelProps, AgentStatus } from '../../types';
 import InitialAvatar from './InitialAvatar';
-import Checklist from './Checklist';
 import TerminalContainer from '../terminal/TerminalContainer';
 import ConfirmDialog from '../common/ConfirmDialog';
 import { formatTokens } from '../../utils/format';
-import ActivityTimeline from './ActivityTimeline';
 
 const statusColors: Record<AgentStatus, string> = {
   running: '#22c55e',
@@ -19,23 +16,14 @@ const statuses: AgentStatus[] = ['idle', 'running', 'offline'];
 export default function AgentDetailPanel({
   agent,
   onUpdateStatus,
-  onAddChecklistItem,
-  onToggleChecklistItem,
-  onRemoveChecklistItem,
-  onEditChecklistItem,
-  onMoveChecklistItem,
-  onClearCompletedItems,
   onRemoveAgent,
   onUpdateTerminals,
   onUpdateName,
   onUpdateAgent,
   claudeSummary,
-  activityEvents = [],
-  onClearActivity,
 }: AgentDetailPanelProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isTerminalExpanded, setIsTerminalExpanded] = useState(false);
-  const [sideTab, setSideTab] = useState<'checklist' | 'activity'>('checklist');
   const [showSettings, setShowSettings] = useState(false);
   const colorInputRef = useRef<HTMLInputElement>(null);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -50,7 +38,6 @@ export default function AgentDetailPanel({
     }
   }, [isEditingName]);
 
-  // Reset UI state when agent changes
   useEffect(() => {
     setShowSettings(false);
     setIsEditingName(false);
@@ -112,10 +99,7 @@ export default function AgentDetailPanel({
             )}
             <span
               className="rounded-full px-2 py-0.5 text-[11px] font-medium capitalize"
-              style={{
-                backgroundColor: dotColor + '20',
-                color: dotColor,
-              }}
+              style={{ backgroundColor: dotColor + '20', color: dotColor }}
             >
               {agent.status}
             </span>
@@ -142,7 +126,6 @@ export default function AgentDetailPanel({
             </div>
           )}
 
-          {/* Status buttons */}
           <div className="mt-3 flex items-center gap-1">
             {statuses.map((s) => {
               const color = statusColors[s];
@@ -154,9 +137,7 @@ export default function AgentDetailPanel({
                   onClick={() => onUpdateStatus(s)}
                   aria-label={`Set status to ${s}`}
                   className={`rounded-md px-2.5 py-1 text-xs font-medium capitalize transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white/30 ${
-                    isActive
-                      ? 'text-white'
-                      : 'text-white/40 hover:text-white/60'
+                    isActive ? 'text-white' : 'text-white/40 hover:text-white/60'
                   }`}
                   style={{
                     backgroundColor: isActive ? color + '30' : 'rgba(255,255,255,0.05)',
@@ -192,17 +173,9 @@ export default function AgentDetailPanel({
       </div>
 
       {/* Settings panel */}
-      <AnimatePresence>
-      {showSettings && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.2 }}
-          className="rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 p-4 flex flex-col gap-3 overflow-hidden"
-        >
+      <div className={`anim-collapse ${showSettings ? 'is-visible' : ''}`}>
+        <div className="rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 p-4 flex flex-col gap-3">
           <h3 className="text-xs font-semibold text-white/50 uppercase tracking-wider">Agent Settings</h3>
-          {/* Color */}
           <div className="flex items-center gap-3">
             <span className="text-xs text-white/40 w-20">Color</span>
             <button
@@ -221,7 +194,6 @@ export default function AgentDetailPanel({
               tabIndex={-1}
             />
           </div>
-          {/* Working Directory */}
           <div className="flex items-center gap-3">
             <span className="text-xs text-white/40 w-20">Path</span>
             <div className="flex-1 flex gap-2">
@@ -244,7 +216,6 @@ export default function AgentDetailPanel({
               </button>
             </div>
           </div>
-          {/* Role */}
           <div className="flex items-center gap-3">
             <span className="text-xs text-white/40 w-20">Role</span>
             <input
@@ -255,77 +226,24 @@ export default function AgentDetailPanel({
               className="flex-1 rounded-lg bg-white/5 px-2 py-1.5 text-xs text-white placeholder-white/30 outline-none ring-1 ring-white/10 focus-visible:ring-2 focus-visible:ring-white/30"
             />
           </div>
-        </motion.div>
-      )}
-      </AnimatePresence>
-
-      {/* Main content: terminal + checklist */}
-      <div className={`flex flex-col gap-4 ${isTerminalExpanded ? '' : 'lg:flex-row'}`}>
-        {/* Terminal area */}
-        <div className={`${isTerminalExpanded ? 'h-[calc(100vh-220px)]' : 'h-[400px] lg:min-w-[60%]'}`}>
-          <TerminalContainer
-            agent={agent}
-            onUpdateTerminals={onUpdateTerminals}
-            isExpanded={isTerminalExpanded}
-            onToggleExpand={() => setIsTerminalExpanded((prev) => !prev)}
-          />
         </div>
+      </div>
 
-        {/* Side panel: Checklist / Activity */}
-        <div className={`rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 p-4 flex flex-col ${isTerminalExpanded ? 'w-full max-h-[300px]' : 'w-full lg:w-80 h-[400px]'}`}>
-          {/* Tabs */}
-          <div className="mb-3 flex items-center gap-1 rounded-lg bg-white/5 p-0.5">
-            <button
-              type="button"
-              onClick={() => setSideTab('checklist')}
-              className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-                sideTab === 'checklist' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/60'
-              }`}
-            >
-              Checklist
-              <span className="ml-1 text-[10px] text-white/30">{agent.checklist.length}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSideTab('activity')}
-              className={`flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
-                sideTab === 'activity' ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/60'
-              }`}
-            >
-              Activity
-              {activityEvents.length > 0 && (
-                <span className="ml-1 text-[10px] text-white/30">{activityEvents.length}</span>
-              )}
-            </button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto min-h-0">
-          {sideTab === 'checklist' ? (
-            <Checklist
-              items={agent.checklist}
-              onAdd={onAddChecklistItem}
-              onToggle={onToggleChecklistItem}
-              onRemove={onRemoveChecklistItem}
-              onEdit={onEditChecklistItem}
-              onMove={onMoveChecklistItem}
-              onClearCompleted={onClearCompletedItems}
-              accentColor={agent.color}
-            />
-          ) : (
-            <ActivityTimeline events={activityEvents} onClear={onClearActivity} />
-          )}
-          </div>
-        </div>
+      {/* Terminal area — full width */}
+      <div className={isTerminalExpanded ? 'h-[calc(100vh-220px)]' : 'h-[400px]'}>
+        <TerminalContainer
+          agent={agent}
+          onUpdateTerminals={onUpdateTerminals}
+          isExpanded={isTerminalExpanded}
+          onToggleExpand={() => setIsTerminalExpanded((prev) => !prev)}
+        />
       </div>
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         title="Delete Agent"
         message={`"${agent.name}" agent and all session data will be permanently deleted.`}
-        onConfirm={() => {
-          setShowDeleteConfirm(false);
-          onRemoveAgent();
-        }}
+        onConfirm={() => { setShowDeleteConfirm(false); onRemoveAgent(); }}
         onCancel={() => setShowDeleteConfirm(false)}
       />
     </div>

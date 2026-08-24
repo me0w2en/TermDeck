@@ -1,12 +1,6 @@
 export type AgentStatus = 'idle' | 'running' | 'offline';
 
-export type ViewMode = 'dashboard' | 'detail';
-
-export interface ChecklistItem {
-  id: string;
-  title: string;
-  completed: boolean;
-}
+export type ViewMode = 'dashboard' | 'detail' | 'monitor';
 
 export interface AgentTerminal {
   index: number;
@@ -20,7 +14,6 @@ export interface Agent {
   status: AgentStatus;
   color: string;
   path?: string;
-  checklist: ChecklistItem[];
   terminals: AgentTerminal[];
   createdAt: string;
 }
@@ -38,15 +31,9 @@ export interface UseAgentsReturn {
   selectedId: string | null;
   selectedAgent: Agent | null;
   selectAgent: (id: string) => void;
-  addAgent: (data: Omit<Agent, 'id' | 'createdAt' | 'checklist' | 'terminals'>) => void;
+  addAgent: (data: Omit<Agent, 'id' | 'createdAt' | 'terminals'>) => void;
   removeAgent: (id: string) => void;
   updateAgent: (id: string, updates: Partial<Agent>) => void;
-  addChecklistItem: (agentId: string, title: string) => void;
-  toggleChecklistItem: (agentId: string, itemId: string) => void;
-  removeChecklistItem: (agentId: string, itemId: string) => void;
-  editChecklistItem: (agentId: string, itemId: string, title: string) => void;
-  moveChecklistItem: (agentId: string, itemId: string, direction: 'up' | 'down') => void;
-  clearCompletedItems: (agentId: string) => void;
   moveAgent: (id: string, direction: 'up' | 'down') => void;
   filterText: string;
   setFilterText: (text: string) => void;
@@ -81,8 +68,6 @@ export interface TopBarProps {
 
 export interface StatusBarProps {
   counts: Record<AgentStatus, number>;
-  totalTasks: number;
-  completedTasks: number;
   totalCost: number;
   totalAllTimeCost?: number;
   themeMode?: import('../hooks/useTheme').ThemeMode;
@@ -94,36 +79,16 @@ export interface DashboardViewProps {
   onSelectAgent: (id: string) => void;
   onAddAgent?: () => void;
   getClaudeSummary: (agentId: string) => ClaudeAgentSummary;
-  getLastActivity?: (agentId: string) => string | null;
 }
 
 export interface AgentDetailPanelProps {
   agent: Agent;
   onUpdateStatus: (status: AgentStatus) => void;
-  onAddChecklistItem: (title: string) => void;
-  onToggleChecklistItem: (itemId: string) => void;
-  onRemoveChecklistItem: (itemId: string) => void;
-  onEditChecklistItem: (itemId: string, title: string) => void;
-  onMoveChecklistItem: (itemId: string, direction: 'up' | 'down') => void;
-  onClearCompletedItems: () => void;
   onRemoveAgent: () => void;
   onUpdateTerminals: (terminals: AgentTerminal[]) => void;
   onUpdateName: (name: string) => void;
   onUpdateAgent: (updates: Partial<Agent>) => void;
   claudeSummary: ClaudeAgentSummary;
-  activityEvents?: import('../hooks/useActivityLog').ActivityEvent[];
-  onClearActivity?: () => void;
-}
-
-export interface ChecklistProps {
-  items: ChecklistItem[];
-  onAdd: (title: string) => void;
-  onToggle: (id: string) => void;
-  onRemove: (id: string) => void;
-  onEdit: (id: string, title: string) => void;
-  onMove: (id: string, direction: 'up' | 'down') => void;
-  onClearCompleted: () => void;
-  accentColor: string;
 }
 
 export interface TerminalPanelProps {
@@ -147,5 +112,5 @@ export interface InitialAvatarProps {
 export interface AddAgentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (data: Omit<Agent, 'id' | 'createdAt' | 'checklist' | 'terminals'>) => void;
+  onAdd: (data: Omit<Agent, 'id' | 'createdAt' | 'terminals'>) => void;
 }
