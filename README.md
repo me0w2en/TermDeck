@@ -1,5 +1,8 @@
 # TermDeck
 
+> [!NOTE]
+> 이 프로젝트는 2026년 8월 25일부터 유지보수하지 않으며, 참고용으로 보관합니다.
+
 **멀티 에이전트 터미널 대시보드**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -15,12 +18,11 @@
 - **멀티 터미널 세션 관리** — 에이전트별 독립 터미널, 탭 별칭, 분할 뷰, 세션 자동 복원
 - **Claude Code 모니터링** — 실시간 상태 감지, 토큰/비용 추적, 일별 히스토리
 - **에이전트 관리** — 생성/편집/삭제, 색상/경로 설정, 순서 변경, 우클릭 메뉴
-- **체크리스트** — 인라인 편집, 순서 변경, 완료 항목 분리, 연속 입력
-- **대시보드 오버뷰** — 카드 그리드, 정렬, 활동 시간 표시
+- **멀티 터미널 모니터** — 서로 다른 에이전트의 터미널을 최대 6개까지 한 화면에서 동시 확인
+- **대시보드 오버뷰** — 카드 그리드와 정렬
 - **커맨드 팔레트** — `⌘K`로 모든 명령에 빠르게 접근
-- **키보드 단축키** — `⌘N` `⌘D` `⌘B` `⌘1~5` + 버튼 hover 시 힌트 표시
+- **키보드 단축키** — `⌘N` `⌘D` `⌘M` `⌘B` `⌘1~5` + 버튼 hover 시 힌트 표시
 - **다크/라이트/시스템 테마** — StatusBar에서 전환
-- **Activity 타임라인** — Claude 시작/종료, 상태 변경 이벤트를 날짜별 기록
 
 ## Installation
 
@@ -61,20 +63,19 @@ src/
   app/App.tsx                              메인 레이아웃 + 단축키 + 상태 관리
   components/
     agents/                                AgentListItem, AgentDetailPanel,
-                                           Checklist, AddAgentModal, InitialAvatar,
-                                           ActivityTimeline
+                                           AddAgentModal, InitialAvatar
     dashboard/DashboardView.tsx            대시보드 그리드 뷰 + 정렬
+    monitor/MonitorView.tsx                멀티 터미널 모니터 뷰
     terminal/                              TerminalPanel, TerminalContainer (분할 뷰)
     layout/                                Sidebar, TopBar, StatusBar, Background
     common/                                ConfirmDialog, CommandPalette, Tooltip,
                                            ErrorBoundary
   hooks/
-    useAgents.ts                           에이전트 CRUD + 체크리스트 + 정렬
+    useAgents.ts                           에이전트 CRUD + 정렬
     useClaudeMonitor.ts                    Claude Code 세션 모니터링
     useKeyboardShortcuts.ts                글로벌 키보드 단축키
     useToast.tsx                           토스트 알림 시스템
     useTheme.ts                            다크/라이트/시스템 테마
-    useActivityLog.ts                      활동 타임라인 (localStorage 영속)
     useCostHistory.ts                      일별 비용/토큰 히스토리
     useFocusTrap.ts                        모달 포커스 트래핑
   utils/format.ts                          유틸리티 함수
@@ -92,7 +93,7 @@ electron/
 | 프레임워크 | Electron 33 |
 | 프론트엔드 | React 18 · TypeScript 5 |
 | 빌드 도구 | Vite 6 |
-| 스타일링 | Tailwind CSS 3 · Framer Motion 11 |
+| 스타일링 | Tailwind CSS 3 |
 | 터미널 | xterm.js 5 · node-pty |
 
 ## License
